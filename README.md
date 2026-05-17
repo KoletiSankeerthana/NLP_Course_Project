@@ -1,6 +1,3 @@
-
-
-````markdown
 # ⚖️ Legal NLP Intelligence System
 ## Comparative Study of Sparse and Dense Embedding Architectures for Indian Legal Document Classification
 
