@@ -1,3 +1,4 @@
+streamlit
 pandas
 numpy
 scikit-learn
@@ -5,10 +6,8 @@ gensim
 matplotlib
 seaborn
 nltk
-transformers
-torch
-sentence-transformers
 joblib
-streamlit
 plotly
 pillow
+scipy
+wordcloud
