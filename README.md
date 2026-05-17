@@ -110,11 +110,10 @@ Evaluation & Visualization
 
 ## Dense Embeddings
 
-4. Word2Vec CBOW
-5. Word2Vec Skip-Gram
-6. FastText
-7. Doc2Vec Distributed Memory (DM)
-8. Doc2Vec Distributed Bag of Words (DBOW)
+5. Word2Vec CBOW
+6. Word2Vec Skip-Gram
+7. GLOVE
+8. FastText
 
 ---
 
