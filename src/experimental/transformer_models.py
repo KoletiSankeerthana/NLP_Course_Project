@@ -8,7 +8,7 @@ Author: Antigravity (AI Assistant)
 """
 
 try:
-    from sentence_transformers import SentenceTransformer
+    
 except (ImportError, OSError):
     SentenceTransformer = None
 import numpy as np
