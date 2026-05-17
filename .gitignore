@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Project Specific
+data/raw/*
+!data/raw/.gitkeep
+outputs/figures/*
+outputs/results/*
+models/trained/*
+embeddings/trained/*
+embeddings/vectorizers/*
+
+# OS
+.DS_Store
+Thumbs.db
