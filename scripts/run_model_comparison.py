@@ -14,7 +14,11 @@ import sys
 import joblib
 import time
 from sklearn.model_selection import train_test_split
-from gensim.models import Word2Vec, FastText, Doc2Vec
+#from gensim.models import Word2Vec, FastText, Doc2Vec
+try:
+    from gensim.models import Word2Vec, FastText, Doc2Vec
+except ImportError:
+    Word2Vec = FastText = Doc2Vec = None
 
 # Ensure src is in path
 sys.path.append(os.getcwd())
