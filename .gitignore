@@ -1,4 +1,6 @@
+# =========================
 # Python
+# =========================
 __pycache__/
 *.pyc
 *.pyo
@@ -6,28 +8,58 @@ __pycache__/
 .Python
 env/
 venv/
+.tox/
+.cache/
+.coverage
+coverage.xml
+nosetests.xml
 pip-log.txt
 pip-delete-this-directory.txt
-.tox/
-.coverage
-.cache
-nosetests.xml
-coverage.xml
-*,cover
 .hypothesis/
 
+# =========================
 # Jupyter
+# =========================
 .ipynb_checkpoints/
 
-# Project Specific
+# =========================
+# Streamlit
+# =========================
+.streamlit/secrets.toml
+
+# =========================
+# Large ML Artifacts
+# =========================
+models/trained/
+embeddings/trained/
+embeddings/vectorizers/
+
+# Ignore model files
+*.model
+*.pkl
+*.pickle
+*.joblib
+
+# =========================
+# Outputs
+# =========================
+outputs/
+logs/
+
+# =========================
+# Raw Data
+# =========================
 data/raw/*
 !data/raw/.gitkeep
-outputs/figures/*
-outputs/results/*
-models/trained/*
-embeddings/trained/*
-embeddings/vectorizers/*
 
-# OS
+# =========================
+# Temporary / Cache
+# =========================
+*.tmp
+*.temp
+
+# =========================
+# OS Files
+# =========================
 .DS_Store
 Thumbs.db
