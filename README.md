@@ -103,10 +103,10 @@ Evaluation & Visualization
 
 ## Sparse Embeddings
 
-1.Label-encoding
-2.One-Hot Encoding
-3.Bag-of-Words (BoW)
-4.TF-IDF 
+1. Label-encoding
+2. One-Hot Encoding
+3. Bag-of-Words (BoW)
+4. TF-IDF 
 
 ## Dense Embeddings
 
