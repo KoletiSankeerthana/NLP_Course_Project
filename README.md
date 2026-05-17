@@ -1,4 +1,4 @@
-# Copy-paste this directly into your `README.md`
+
 
 ````markdown
 # ⚖️ Legal NLP Intelligence System
