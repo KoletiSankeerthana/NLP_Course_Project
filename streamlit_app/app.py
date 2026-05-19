@@ -1145,64 +1145,225 @@ elif page == "🔤 Embeddings":
     st.markdown(matrix_html, unsafe_allow_html=True)
 
 elif page == "🤖 Prediction":
-    st.markdown("<div class='section-header'>AI Inference Engine</div>", unsafe_allow_html=True)
-    st.markdown("<p class='compact-text'>Run live predictions using trained hybrid models.</p>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>Real-Time Legal NLP Inference Pipeline</div>", unsafe_allow_html=True)
+    st.markdown("<p class='compact-text'>Run live predictions using trained hybrid models for single segments, multi-segments, or batch CSV uploads.</p>", unsafe_allow_html=True)
     
-    c1, c2 = st.columns([1, 2.5])
-    with c1:
-        st.markdown("#### Configuration")
-        emb = st.selectbox("Embedding Model", ["TF-IDF", "BoW", "One-Hot", "W2V_CBOW", "W2V_SG", "FastText", "Doc2Vec_DM", "Doc2Vec_DBOW"])
-        clf = st.selectbox("Classifier", ["logistic_regression", "random_forest"])
-        
-    with c2:
-        st.markdown("#### Input Segment")
-        txt = st.text_area("", placeholder="Enter legal text segment for classification...", height=150, label_visibility="collapsed")
-        
-        if st.button("Run Classification", use_container_width=True) and txt:
-            try:
-                proc = preprocessor.full_preprocess(txt)
-                if emb in ["TF-IDF", "BoW", "One-Hot"]:
-                    vec = load_vectorizer_asset(emb)
-                    feats = vec.transform([proc])
-                else:
-                    st.warning("Precomputed dense embedding results are displayed in this deployment version.")
-                    feats = None
-                    # m = load_embedding_asset(emb)
-                    # if "Doc2Vec" in emb: feats = m.infer_vector(proc.split()).reshape(1,-1)
-                    # else:
-                    #     vs = [m.wv[w] for w in proc.split() if w in m.wv]
-                    #     feats = np.mean(vs, axis=0).reshape(1,-1) if vs else np.zeros((1, m.vector_size))
-                
-                model = load_model_asset(emb, clf) if feats is not None else None
-                if model and feats is not None:
-                    pred = model.predict(feats)[0]
-                    probs = model.predict_proba(feats)[0]
+    # Initialize session state for multi-segment prediction
+    if 'multi_segment_count' not in st.session_state:
+        st.session_state.multi_segment_count = 3
+
+    tab1, tab2, tab3 = st.tabs(["Single Prediction", "Multi-Segment Prediction", "Batch CSV Prediction"])
+    
+    with tab1:
+        c1, c2 = st.columns([1, 2.5])
+        with c1:
+            st.markdown("#### Configuration")
+            emb_single = st.selectbox("Embedding Model", ["TF-IDF", "BoW", "One-Hot", "W2V_CBOW", "W2V_SG", "FastText", "Doc2Vec_DM", "Doc2Vec_DBOW"], key="single_emb")
+            clf_single = st.selectbox("Classifier", ["logistic_regression", "random_forest"], key="single_clf")
+            
+        with c2:
+            st.markdown("#### Input Segment")
+            txt_single = st.text_area("", placeholder="Enter legal text segment for classification...", height=150, label_visibility="collapsed", key="single_txt")
+            
+            if st.button("Run Classification", use_container_width=True, key="single_btn") and txt_single:
+                try:
+                    proc = preprocessor.full_preprocess(txt_single)
+                    if emb_single in ["TF-IDF", "BoW", "One-Hot"]:
+                        vec = load_vectorizer_asset(emb_single)
+                        feats = vec.transform([proc])
+                    else:
+                        st.warning("Precomputed dense embedding results are displayed in this deployment version.")
+                        feats = None
                     
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    pred_col1, pred_col2 = st.columns([1, 1.5])
-                    with pred_col1:
-                        st.markdown(f"""
-                            <div class="pred-card">
-                                <h3>Predicted Category</h3>
-                                <div class="pred-class">{pred}</div>
-                            </div>
-                        """, unsafe_allow_html=True)
-                    with pred_col2:
-                        # Confidence Visualization
-                        df_probs = pd.DataFrame({'Class': model.classes_, 'Confidence': probs}).sort_values('Confidence', ascending=True).tail(5)
-                        fig = px.bar(df_probs, x='Confidence', y='Class', orientation='h', color_discrete_sequence=['#3B82F6'])
-                        fig.update_layout(
-                            margin=dict(l=0, r=0, t=10, b=0),
-                            height=200,
-                            paper_bgcolor=plotly_bg,
-                            plot_bgcolor=plotly_bg,
-                            font=dict(color=plotly_font_color),
-                            xaxis=dict(showgrid=True, gridcolor=plotly_grid_color, range=[0, 1]),
-                            yaxis=dict(showgrid=False)
-                        )
-                        st.plotly_chart(fig, use_container_width=True)
-                else: st.error("Model assets missing. Please ensure models are trained.")
-            except Exception as e: st.error(f"Inference error: {str(e)}")
+                    model = load_model_asset(emb_single, clf_single) if feats is not None else None
+                    if model and feats is not None:
+                        pred = model.predict(feats)[0]
+                        probs = model.predict_proba(feats)[0]
+                        
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        pred_col1, pred_col2 = st.columns([1, 1.5])
+                        with pred_col1:
+                            st.markdown(f"""
+                                <div class="pred-card">
+                                    <h3>Predicted Category</h3>
+                                    <div class="pred-class">{pred}</div>
+                                </div>
+                            """, unsafe_allow_html=True)
+                        with pred_col2:
+                            # Confidence Visualization
+                            df_probs = pd.DataFrame({'Class': model.classes_, 'Confidence': probs}).sort_values('Confidence', ascending=True).tail(5)
+                            fig = px.bar(df_probs, x='Confidence', y='Class', orientation='h', color_discrete_sequence=['#3B82F6'])
+                            fig.update_layout(
+                                margin=dict(l=0, r=0, t=10, b=0),
+                                height=200,
+                                paper_bgcolor=plotly_bg,
+                                plot_bgcolor=plotly_bg,
+                                font=dict(color=plotly_font_color),
+                                xaxis=dict(showgrid=True, gridcolor=plotly_grid_color, range=[0, 1]),
+                                yaxis=dict(showgrid=False)
+                            )
+                            st.plotly_chart(fig, use_container_width=True)
+                    else: st.error("Model assets missing. Please ensure models are trained.")
+                except Exception as e: st.error(f"Inference error: {str(e)}")
+
+    with tab2:
+        st.markdown("#### Multi-Segment Classification")
+        st.markdown("<p class='compact-text'>Analyze multiple text segments simultaneously using a shared model configuration.</p>", unsafe_allow_html=True)
+        
+        c1_multi, c2_multi = st.columns([1, 2.5])
+        with c1_multi:
+            st.markdown("##### Shared Configuration")
+            emb_multi = st.selectbox("Embedding Model", ["TF-IDF", "BoW", "One-Hot", "W2V_CBOW", "W2V_SG", "FastText", "Doc2Vec_DM", "Doc2Vec_DBOW"], key="multi_emb")
+            clf_multi = st.selectbox("Classifier", ["logistic_regression", "random_forest"], key="multi_clf")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("➕ Add Segment", use_container_width=True):
+                st.session_state.multi_segment_count += 1
+                st.rerun()
+                
+            run_multi = st.button("🚀 Run Multi-Segment Classification", use_container_width=True, type="primary")
+
+        with c2_multi:
+            segments = []
+            for i in range(st.session_state.multi_segment_count):
+                st.markdown(f"**Segment {i+1}**")
+                seg_text = st.text_area(f"Input {i+1}", placeholder=f"Enter text for segment {i+1}...", height=100, label_visibility="collapsed", key=f"multi_txt_{i}")
+                segments.append(seg_text)
+                
+        if run_multi:
+            # Filter empty segments
+            valid_segments = [(i, t) for i, t in enumerate(segments) if t.strip()]
+            if not valid_segments:
+                st.warning("Please provide text in at least one segment to run classification.")
+            else:
+                with st.spinner("Processing multiple segments..."):
+                    multi_results = []
+                    if emb_multi not in ["TF-IDF", "BoW", "One-Hot"]:
+                        st.warning("Precomputed dense embedding results are displayed in this deployment version. Live prediction relies on sparse embeddings.")
+                    else:
+                        vec = load_vectorizer_asset(emb_multi)
+                        model = load_model_asset(emb_multi, clf_multi) if vec else None
+                        
+                        if not vec or not model:
+                            st.error("Model assets missing. Please ensure models are trained.")
+                        else:
+                            for i, txt in valid_segments:
+                                try:
+                                    proc = preprocessor.full_preprocess(txt)
+                                    feats = vec.transform([proc])
+                                    pred = model.predict(feats)[0]
+                                    preview = txt[:60] + "..." if len(txt) > 60 else txt
+                                    multi_results.append({
+                                        "Segment ID": i+1,
+                                        "Text Preview": preview,
+                                        "Embedding": emb_multi,
+                                        "Classifier": clf_multi,
+                                        "Prediction": pred
+                                    })
+                                except Exception as e:
+                                    multi_results.append({
+                                        "Segment ID": i+1,
+                                        "Text Preview": "Error processing",
+                                        "Embedding": emb_multi,
+                                        "Classifier": clf_multi,
+                                        "Prediction": f"Error: {str(e)}"
+                                    })
+                            
+                            if multi_results:
+                                st.success("✅ Multi-Segment Classification Complete")
+                                st.dataframe(pd.DataFrame(multi_results), use_container_width=True)
+
+    with tab3:
+        st.markdown("#### Batch CSV Classification")
+        st.markdown("<p class='compact-text'>Upload a CSV dataset for high-throughput batch classification.</p>", unsafe_allow_html=True)
+        
+        c1_batch, c2_batch = st.columns([1, 2.5])
+        with c1_batch:
+            st.markdown("##### Configuration")
+            emb_batch = st.selectbox("Embedding Model", ["TF-IDF", "BoW", "One-Hot", "W2V_CBOW", "W2V_SG", "FastText", "Doc2Vec_DM", "Doc2Vec_DBOW"], key="batch_emb")
+            clf_batch = st.selectbox("Classifier", ["logistic_regression", "random_forest"], key="batch_clf")
+            
+        with c2_batch:
+            uploaded_file = st.file_uploader("Upload CSV file (.csv)", type=["csv"])
+            
+        if uploaded_file is not None:
+            try:
+                batch_df = pd.read_csv(uploaded_file)
+                st.markdown(f"**Uploaded rows: {len(batch_df)}**")
+                
+                # Auto-detect text column
+                text_col = None
+                if 'case_text' in batch_df.columns: text_col = 'case_text'
+                elif 'text' in batch_df.columns: text_col = 'text'
+                elif 'case_info' in batch_df.columns: text_col = 'case_info'
+                
+                if not text_col:
+                    st.error("Error: CSV must contain a column named 'case_text', 'text', or 'case_info'.")
+                else:
+                    st.dataframe(batch_df.head(5), use_container_width=True)
+                    
+                    if st.button("🚀 Run Batch Classification", use_container_width=True, type="primary", key="batch_btn"):
+                        with st.spinner(f"Classifying {len(batch_df)} documents..."):
+                            if emb_batch not in ["TF-IDF", "BoW", "One-Hot"]:
+                                st.warning("Precomputed dense embedding results are displayed in this deployment version. Live prediction relies on sparse embeddings.")
+                            else:
+                                vec = load_vectorizer_asset(emb_batch)
+                                model = load_model_asset(emb_batch, clf_batch)
+                                
+                                if not vec or not model:
+                                    st.error("Model assets missing. Please ensure models are trained.")
+                                else:
+                                    # Process in batch for speed
+                                    processed_texts = [preprocessor.full_preprocess(str(t)) for t in batch_df[text_col]]
+                                    feats = vec.transform(processed_texts)
+                                    preds = model.predict(feats)
+                                    
+                                    result_df = pd.DataFrame({
+                                        'original_text': batch_df[text_col],
+                                        'predicted_class': preds,
+                                        'embedding_model': emb_batch,
+                                        'classifier_used': clf_batch
+                                    })
+                                    
+                                    st.success(f"✅ Successfully processed {len(result_df)} documents")
+                                    
+                                    # Visual Analytics
+                                    st.markdown("#### Batch Analytics")
+                                    ba_c1, ba_c2 = st.columns([1, 1.5])
+                                    with ba_c1:
+                                        st.markdown(f"""
+                                        <div class='metric-compact' style='text-align: center;'>
+                                            <h5>Total Predictions</h5>
+                                            <h2>{len(result_df)}</h2>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                        
+                                        csv_data = result_df.to_csv(index=False).encode('utf-8')
+                                        st.download_button(
+                                            label="📥 Download Results CSV",
+                                            data=csv_data,
+                                            file_name='predicted_results.csv',
+                                            mime='text/csv',
+                                            use_container_width=True,
+                                            key="batch_dl"
+                                        )
+                                        
+                                    with ba_c2:
+                                        vc = result_df['predicted_class'].value_counts()
+                                        fig_batch = px.pie(values=vc.values, names=vc.index, hole=0.65, title="Class Distribution", color_discrete_sequence=px.colors.sequential.Blues_r)
+                                        fig_batch.update_layout(
+                                            margin=dict(l=0, r=0, t=30, b=0),
+                                            height=250,
+                                            paper_bgcolor=plotly_bg,
+                                            plot_bgcolor=plotly_bg,
+                                            font=dict(color=plotly_font_color)
+                                        )
+                                        st.plotly_chart(fig_batch, use_container_width=True)
+                                        
+                                    st.markdown("#### Prediction Data")
+                                    st.dataframe(result_df, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error reading CSV: {str(e)}")
 
 elif page == "📊 Performance Dashboard":
     st.markdown("<div class='section-header'>Performance Dashboard</div>", unsafe_allow_html=True)
