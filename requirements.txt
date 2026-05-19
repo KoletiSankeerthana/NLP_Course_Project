@@ -1,14 +1,12 @@
 streamlit
 pandas
-numpy<2
+numpy
 scikit-learn
-gensim==4.3.2
-scipy==1.12.0
 matplotlib
 seaborn
 nltk
 joblib
 plotly
-pillow>=10.4.0
+pillow
 wordcloud
-cython
+scipy

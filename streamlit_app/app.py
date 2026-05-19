@@ -12,7 +12,7 @@ import os
 import joblib
 import plotly.express as px
 import plotly.graph_objects as go
-from gensim.models import Word2Vec, FastText, Doc2Vec
+# from gensim.models import Word2Vec, FastText, Doc2Vec
 import sys
 
 # Ensure project root is in path
@@ -470,13 +470,14 @@ def load_vectorizer_asset(emb):
 
 @st.cache_resource
 def load_embedding_asset(emb):
-    try:
-        emb_map = {"W2V_CBOW": "word2vec_cbow.model", "W2V_SG": "word2vec_skipgram.model", "FastText": "fasttext.model", "Doc2Vec_DM": "doc2vec_dm.model", "Doc2Vec_DBOW": "doc2vec_dbow.model"}
-        path = os.path.join(EMBEDDING_MODELS_PATH, emb_map[emb])
-        if "fasttext" in path.lower(): return FastText.load(path)
-        elif "doc2vec" in path.lower(): return Doc2Vec.load(path)
-        else: return Word2Vec.load(path)
-    except: return None
+    # try:
+    #     emb_map = {"W2V_CBOW": "word2vec_cbow.model", "W2V_SG": "word2vec_skipgram.model", "FastText": "fasttext.model", "Doc2Vec_DM": "doc2vec_dm.model", "Doc2Vec_DBOW": "doc2vec_dbow.model"}
+    #     path = os.path.join(EMBEDDING_MODELS_PATH, emb_map[emb])
+    #     if "fasttext" in path.lower(): return FastText.load(path)
+    #     elif "doc2vec" in path.lower(): return Doc2Vec.load(path)
+    #     else: return Word2Vec.load(path)
+    # except: return None
+    return None
 
 preprocessor, results_df, _ = load_resources()
 dataset_df = load_main_dataset()
@@ -496,12 +497,14 @@ def evaluate_model(txt, emb, clf):
             vec = load_vectorizer_asset(emb)
             feats = vec.transform([proc])
         else:
-            m = load_embedding_asset(emb)
-            if "Doc2Vec" in emb:
-                feats = m.infer_vector(proc.split()).reshape(1, -1)
-            else:
-                vs = [m.wv[w] for w in proc.split() if w in m.wv]
-                feats = np.mean(vs, axis=0).reshape(1, -1) if vs else np.zeros((1, m.vector_size))
+            st.warning("Precomputed dense embedding results are displayed in this deployment version.")
+            return None, None, None
+            # m = load_embedding_asset(emb)
+            # if "Doc2Vec" in emb:
+            #     feats = m.infer_vector(proc.split()).reshape(1, -1)
+            # else:
+            #     vs = [m.wv[w] for w in proc.split() if w in m.wv]
+            #     feats = np.mean(vs, axis=0).reshape(1, -1) if vs else np.zeros((1, m.vector_size))
         
         model = load_model_asset(emb, clf)
         if model:
@@ -1162,14 +1165,16 @@ elif page == "🤖 Prediction":
                     vec = load_vectorizer_asset(emb)
                     feats = vec.transform([proc])
                 else:
-                    m = load_embedding_asset(emb)
-                    if "Doc2Vec" in emb: feats = m.infer_vector(proc.split()).reshape(1,-1)
-                    else:
-                        vs = [m.wv[w] for w in proc.split() if w in m.wv]
-                        feats = np.mean(vs, axis=0).reshape(1,-1) if vs else np.zeros((1, m.vector_size))
+                    st.warning("Precomputed dense embedding results are displayed in this deployment version.")
+                    feats = None
+                    # m = load_embedding_asset(emb)
+                    # if "Doc2Vec" in emb: feats = m.infer_vector(proc.split()).reshape(1,-1)
+                    # else:
+                    #     vs = [m.wv[w] for w in proc.split() if w in m.wv]
+                    #     feats = np.mean(vs, axis=0).reshape(1,-1) if vs else np.zeros((1, m.vector_size))
                 
-                model = load_model_asset(emb, clf)
-                if model:
+                model = load_model_asset(emb, clf) if feats is not None else None
+                if model and feats is not None:
                     pred = model.predict(feats)[0]
                     probs = model.predict_proba(feats)[0]
                     
