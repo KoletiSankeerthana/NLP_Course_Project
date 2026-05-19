@@ -1217,18 +1217,16 @@ elif page == "🤖 Prediction":
             clf_multi = st.selectbox("Classifier", ["logistic_regression", "random_forest"], key="multi_clf")
             
             st.markdown("<br>", unsafe_allow_html=True)
-            b1, b2 = st.columns(2)
-            with b1:
-                if st.button("➕ Add", use_container_width=True):
-                    st.session_state.multi_segment_count += 1
+            if st.button("➕ Add Segment", use_container_width=True):
+                st.session_state.multi_segment_count += 1
+                st.rerun()
+            if st.button("➖ Remove Segment", use_container_width=True):
+                if st.session_state.multi_segment_count > 1:
+                    st.session_state.multi_segment_count -= 1
                     st.rerun()
-            with b2:
-                if st.button("➖ Remove", use_container_width=True):
-                    if st.session_state.multi_segment_count > 1:
-                        st.session_state.multi_segment_count -= 1
-                        st.rerun()
                 
-            run_multi = st.button("🚀 Run Multi-Segment Classification", use_container_width=True, type="primary")
+            st.markdown("<hr style='margin: 15px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
+            run_multi = st.button("🚀 Run Classification", use_container_width=True, type="primary")
 
         with c2_multi:
             segments = []
