@@ -1167,13 +1167,13 @@ elif page == "🔤 Embeddings":
 
 elif page == "🤖 Prediction":
     st.markdown("<div class='section-header'>Real-Time Legal NLP Inference Pipeline</div>", unsafe_allow_html=True)
-    st.markdown("<p class='compact-text'>Run live predictions using trained hybrid models for single segments, multi-segments, or batch CSV uploads.</p>", unsafe_allow_html=True)
+    st.markdown("<p class='compact-text'>Run live predictions using trained hybrid models for single segments or multi-segments.</p>", unsafe_allow_html=True)
     
     # Initialize session state for multi-segment prediction
     if 'multi_segment_count' not in st.session_state:
         st.session_state.multi_segment_count = 3
 
-    tab1, tab2, tab3 = st.tabs(["Single Prediction", "Multi-Segment Prediction", "Batch CSV Prediction"])
+    tab1, tab2 = st.tabs(["Single Prediction", "Multi-Segment Prediction"])
     
     with tab1:
         c1, c2 = st.columns([1, 2.5])
@@ -1296,120 +1296,7 @@ elif page == "🤖 Prediction":
                                 st.success("✅ Multi-Segment Classification Complete")
                                 st.dataframe(pd.DataFrame(multi_results), use_container_width=True)
 
-    with tab3:
-        st.markdown("#### Batch CSV Classification")
-        st.markdown("<p class='compact-text'>Upload a CSV dataset for high-throughput batch classification.</p>", unsafe_allow_html=True)
-        
-        c1_batch, c2_batch = st.columns([1, 2.5])
-        with c1_batch:
-            st.markdown("##### Configuration")
-            emb_batch = st.selectbox("Embedding Model", ["TF-IDF", "BoW", "One-Hot", "W2V_CBOW", "W2V_SG", "FastText", "Doc2Vec_DM", "Doc2Vec_DBOW"], key="batch_emb")
-            clf_batch = st.selectbox("Classifier", ["logistic_regression", "random_forest"], key="batch_clf")
-            
-        with c2_batch:
-            uploaded_file = st.file_uploader("Upload CSV file (.csv)", type=["csv"])
-            
-        if uploaded_file is not None:
-            try:
-                batch_df = pd.read_csv(uploaded_file)
-                st.markdown(f"**Uploaded rows: {len(batch_df)}**")
-                
-                # Auto-detect text column
-                text_col = None
-                if 'case_text' in batch_df.columns: text_col = 'case_text'
-                elif 'text' in batch_df.columns: text_col = 'text'
-                elif 'case_info' in batch_df.columns: text_col = 'case_info'
-                
-                if not text_col:
-                    st.error("Error: CSV must contain a column named 'case_text', 'text', or 'case_info'.")
-                else:
-                    st.dataframe(batch_df.head(5), use_container_width=True)
-                    
-                    if st.button("🚀 Run Batch Classification", use_container_width=True, type="primary", key="batch_btn"):
-                        with st.spinner(f"Classifying {len(batch_df)} documents..."):
-                            if emb_batch not in ["TF-IDF", "BoW", "One-Hot"]:
-                                st.warning("Precomputed dense embedding results are displayed in this deployment version. Live prediction relies on sparse embeddings.")
-                            else:
-                                vec = load_vectorizer_asset(emb_batch)
-                                model = load_model_asset(emb_batch, clf_batch)
-                                
-                                if vec and model:
-                                    # Process in batch for speed
-                                    processed_texts = [preprocessor.full_preprocess(str(t)) for t in batch_df[text_col]]
-                                    feats = vec.transform(processed_texts)
-                                    preds = model.predict(feats)
-                                    
-                                    result_df = pd.DataFrame({
-                                        'original_text': batch_df[text_col],
-                                        'predicted_class': preds,
-                                        'embedding_model': emb_batch,
-                                        'classifier_used': clf_batch
-                                    })
 
-                                    
-                                    st.success(f"✅ Successfully processed {len(result_df)} documents")
-                                    
-                                    # Visual Analytics
-                                    st.markdown("#### Batch Analytics")
-                                    ba_c1, ba_c2 = st.columns([1, 1.5])
-                                    with ba_c1:
-                                        st.markdown(f"""
-                                        <div class='metric-compact' style='text-align: center;'>
-                                            <h5>Total Predictions</h5>
-                                            <h2>{len(result_df)}</h2>
-                                        </div>
-                                        """, unsafe_allow_html=True)
-                                        
-                                        csv_data = result_df.to_csv(index=False).encode('utf-8')
-                                        st.download_button(
-                                            label="📥 Download Results CSV",
-                                            data=csv_data,
-                                            file_name='predicted_results.csv',
-                                            mime='text/csv',
-                                            use_container_width=True,
-                                            key="batch_dl"
-                                        )
-                                        
-                                    with ba_c2:
-                                        vc = result_df['predicted_class'].value_counts()
-                                        fig_batch = px.pie(values=vc.values, names=vc.index, hole=0.65, title="Class Distribution", color_discrete_sequence=px.colors.sequential.Blues_r)
-                                        fig_batch.update_layout(
-                                            margin=dict(l=0, r=0, t=30, b=0),
-                                            height=250,
-                                            paper_bgcolor=plotly_bg,
-                                            plot_bgcolor=plotly_bg,
-                                            font=dict(color=plotly_font_color)
-                                        )
-                                        st.plotly_chart(fig_batch, use_container_width=True)
-                                        
-                                    st.markdown("#### Prediction Data")
-                                    st.dataframe(result_df, use_container_width=True)
-            except Exception as e:
-                st.error(f"Error reading CSV: {str(e)}")
-                
-        with st.expander("Model Asset Diagnostics"):
-            st.markdown(f"**Project Root:** `{PROJECT_ROOT}`")
-            st.markdown(f"**Models Dir:** `{MODELS_DIR}`")
-            st.markdown(f"**Vectorizers Dir:** `{VECTORIZERS_DIR}`")
-            
-            c1_diag, c2_diag = st.columns(2)
-            with c1_diag:
-                st.markdown("**Available Classifiers:**")
-                if MODELS_DIR.exists():
-                    files = [f.name for f in MODELS_DIR.iterdir() if f.is_file() and f.suffix == '.pkl']
-                    if files:
-                        for f in files: st.markdown(f"- `{f}`")
-                    else: st.warning("No .pkl files found.")
-                else: st.error("Directory not found.")
-                
-            with c2_diag:
-                st.markdown("**Available Vectorizers:**")
-                if VECTORIZERS_DIR.exists():
-                    files = [f.name for f in VECTORIZERS_DIR.iterdir() if f.is_file() and f.suffix == '.pkl']
-                    if files:
-                        for f in files: st.markdown(f"- `{f}`")
-                    else: st.warning("No .pkl files found.")
-                else: st.error("Directory not found.")
 
 elif page == "📊 Performance Dashboard":
     st.markdown("<div class='section-header'>Performance Dashboard</div>", unsafe_allow_html=True)
