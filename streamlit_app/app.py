@@ -14,9 +14,15 @@ import plotly.express as px
 import plotly.graph_objects as go
 # from gensim.models import Word2Vec, FastText, Doc2Vec
 import sys
+from pathlib import Path
 
 # Ensure project root is in path
 sys.path.append(os.getcwd())
+
+# Robust Path Resolution
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+MODELS_DIR = PROJECT_ROOT / "models" / "trained"
+VECTORIZERS_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
 
 from src.preprocessing.preprocess import TextPreprocessor
 from src.utils.config import (
@@ -457,16 +463,31 @@ def load_resources():
 @st.cache_resource
 def load_model_asset(emb, clf):
     try:
-        path = os.path.join(TRAINED_MODELS_PATH, f"{emb}_{clf}.pkl")
+        filename = f"{emb}_{clf}.pkl"
+        path = MODELS_DIR / filename
+        if not path.exists():
+            st.error(f"Missing classifier: {filename}")
+            return None
         return joblib.load(path)
-    except: return None
+    except Exception as e:
+        st.error(f"Failed to load classifier: {str(e)}")
+        return None
 
 @st.cache_resource
 def load_vectorizer_asset(emb):
     try:
         vec_map = {"One-Hot": "onehot_vectorizer.pkl", "BoW": "bow_vectorizer.pkl", "TF-IDF": "tfidf_vectorizer.pkl"}
-        return joblib.load(os.path.join(VECTORIZERS_PATH, vec_map[emb]))
-    except: return None
+        if emb not in vec_map:
+            return None
+        filename = vec_map[emb]
+        path = VECTORIZERS_DIR / filename
+        if not path.exists():
+            st.error(f"Missing vectorizer: {filename}")
+            return None
+        return joblib.load(path)
+    except Exception as e:
+        st.error(f"Failed to load vectorizer: {str(e)}")
+        return None
 
 @st.cache_resource
 def load_embedding_asset(emb):
@@ -1203,7 +1224,6 @@ elif page == "🤖 Prediction":
                                 yaxis=dict(showgrid=False)
                             )
                             st.plotly_chart(fig, use_container_width=True)
-                    else: st.error("Model assets missing. Please ensure models are trained.")
                 except Exception as e: st.error(f"Inference error: {str(e)}")
 
     with tab2:
@@ -1249,9 +1269,7 @@ elif page == "🤖 Prediction":
                         vec = load_vectorizer_asset(emb_multi)
                         model = load_model_asset(emb_multi, clf_multi) if vec else None
                         
-                        if not vec or not model:
-                            st.error("Model assets missing. Please ensure models are trained.")
-                        else:
+                        if vec and model:
                             for i, txt in valid_segments:
                                 try:
                                     proc = preprocessor.full_preprocess(txt)
@@ -1315,9 +1333,7 @@ elif page == "🤖 Prediction":
                                 vec = load_vectorizer_asset(emb_batch)
                                 model = load_model_asset(emb_batch, clf_batch)
                                 
-                                if not vec or not model:
-                                    st.error("Model assets missing. Please ensure models are trained.")
-                                else:
+                                if vec and model:
                                     # Process in batch for speed
                                     processed_texts = [preprocessor.full_preprocess(str(t)) for t in batch_df[text_col]]
                                     feats = vec.transform(processed_texts)
@@ -1329,6 +1345,7 @@ elif page == "🤖 Prediction":
                                         'embedding_model': emb_batch,
                                         'classifier_used': clf_batch
                                     })
+
                                     
                                     st.success(f"✅ Successfully processed {len(result_df)} documents")
                                     
@@ -1369,6 +1386,30 @@ elif page == "🤖 Prediction":
                                     st.dataframe(result_df, use_container_width=True)
             except Exception as e:
                 st.error(f"Error reading CSV: {str(e)}")
+                
+        with st.expander("Model Asset Diagnostics"):
+            st.markdown(f"**Project Root:** `{PROJECT_ROOT}`")
+            st.markdown(f"**Models Dir:** `{MODELS_DIR}`")
+            st.markdown(f"**Vectorizers Dir:** `{VECTORIZERS_DIR}`")
+            
+            c1_diag, c2_diag = st.columns(2)
+            with c1_diag:
+                st.markdown("**Available Classifiers:**")
+                if MODELS_DIR.exists():
+                    files = [f.name for f in MODELS_DIR.iterdir() if f.is_file() and f.suffix == '.pkl']
+                    if files:
+                        for f in files: st.markdown(f"- `{f}`")
+                    else: st.warning("No .pkl files found.")
+                else: st.error("Directory not found.")
+                
+            with c2_diag:
+                st.markdown("**Available Vectorizers:**")
+                if VECTORIZERS_DIR.exists():
+                    files = [f.name for f in VECTORIZERS_DIR.iterdir() if f.is_file() and f.suffix == '.pkl']
+                    if files:
+                        for f in files: st.markdown(f"- `{f}`")
+                    else: st.warning("No .pkl files found.")
+                else: st.error("Directory not found.")
 
 elif page == "📊 Performance Dashboard":
     st.markdown("<div class='section-header'>Performance Dashboard</div>", unsafe_allow_html=True)
