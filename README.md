@@ -1,6 +1,8 @@
 # ⚖️ Legal NLP Intelligence System
 ## Comparative Study of Sparse and Dense Embedding Architectures for Indian Legal Document Classification
 
+🚀 **Live Demo:** [Streamlit Dashboard](https://nlpcourseproject-7fmezwucxafiolgriloiuq.streamlit.app/)
+
 ---
 
 # 📌 Project Overview
