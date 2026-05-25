@@ -29,18 +29,66 @@ from src.utils.config import (
 from src.utils.helpers import initialize_nltk
 from src.utils.data_loader import load_main_dataset
 
-# Robust Path Resolution
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# ================================
+# Robust Path Resolution (FIXED)
+# ================================
+
+from pathlib import Path
+
+# Correct project root
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+# ================================
+# Model & Vectorizer Directories
+# ================================
+
 MODELS_DIR = PROJECT_ROOT / "models" / "trained"
+
 VECTORIZER_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
-VECTORIZERS_DIR = VECTORIZER_DIR # for backward compatibility
+
+# Backward compatibility
+VECTORIZERS_DIR = VECTORIZER_DIR
+
+# ================================
+# Vectorizer Files
+# ================================
 
 TFIDF_PATH = VECTORIZER_DIR / "tfidf_vectorizer.pkl"
+
 BOW_PATH = VECTORIZER_DIR / "bow_vectorizer.pkl"
+
 ONEHOT_PATH = VECTORIZER_DIR / "onehot_vectorizer.pkl"
 
-PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "processed_legal_dataset_sample.csv"
-RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "case_files_total.csv"
+# ================================
+# Dataset Paths
+# ================================
+
+PROCESSED_DATA_PATH = (
+    PROJECT_ROOT
+    / "data"
+    / "processed"
+    / "processed_legal_dataset_sample.csv"
+)
+
+RAW_DATA_PATH = (
+    PROJECT_ROOT
+    / "data"
+    / "raw"
+    / "case_files_total.csv"
+)
+
+# ================================
+# Debug Prints (VERY IMPORTANT)
+# ================================
+
+print("PROJECT_ROOT:", PROJECT_ROOT)
+print("MODELS_DIR:", MODELS_DIR)
+print("TFIDF MODEL EXISTS:",
+      (MODELS_DIR / "TF-IDF_logistic_regression.pkl").exists())
+
+print("TFIDF VECTORIZER EXISTS:", TFIDF_PATH.exists())
+
+
 
 # --- NLTK INITIALIZATION ---
 try:
@@ -423,6 +471,10 @@ def local_css():
 local_css()
 
 # --- HELPER FUNCTIONS ---
+
+# Global caches for loaded assets to speed up repeated accesses
+_MODEL_CACHE: dict[str, object] = {}
+_VECT_CACHE: dict[str, object] = {}
 def get_text_column(df):
     candidates = ['processed_text', 'judgement', 'case_info', 'text', 'content', 'document']
     for c in candidates:
@@ -470,9 +522,11 @@ def load_resources():
 
 @st.cache_resource
 def load_model_asset(emb, clf):
+    """Load a classifier model with in‑process caching.
+    The first call loads the .pkl from disk; subsequent calls return the cached object.
+    """
     try:
-        # Normalise embedding name so it exactly matches the filename on disk.
-        # Disk convention: TF-IDF, One-Hot, BoW, W2V_CBOW, W2V_SG, FastText, Doc2Vec_DM, Doc2Vec_DBOW
+        # Normalise embedding name to match disk filenames
         _EMB_FILENAME_MAP = {
             "TF-IDF":       "TF-IDF",
             "TF_IDF":       "TF-IDF",
@@ -489,24 +543,36 @@ def load_model_asset(emb, clf):
         }
         emb_norm = _EMB_FILENAME_MAP.get(emb, emb)
         filename = f"{emb_norm}_{clf}.pkl"
+        cache_key = filename
+        # Return cached model if already loaded
+        if cache_key in _MODEL_CACHE:
+            return _MODEL_CACHE[cache_key]
         path = MODELS_DIR / filename
         if not path.exists():
             st.error(f"Missing classifier: {filename}")
             return None
-        return joblib.load(path)
+        model = joblib.load(path)
+        _MODEL_CACHE[cache_key] = model
+        return model
     except Exception as e:
         st.error(f"Failed to load classifier: {str(e)}")
         return None
 
 @st.cache_resource
 def load_vectorizer_asset(emb):
+    """Load a vectorizer with in‑process caching for speed."""
     try:
         vec_map = {"One-Hot": ONEHOT_PATH, "BoW": BOW_PATH, "TF-IDF": TFIDF_PATH}
         if emb not in vec_map:
             return None
+        cache_key = f"vec_{emb}"
+        if cache_key in _VECT_CACHE:
+            return _VECT_CACHE[cache_key]
         path = vec_map[emb]
         if path.exists():
-            return joblib.load(path)
+            vect = joblib.load(path)
+            _VECT_CACHE[cache_key] = vect
+            return vect
         else:
             st.error(f"Missing vectorizer: {path}")
             return None
