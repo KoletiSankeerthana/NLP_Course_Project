@@ -30,32 +30,51 @@ pip-delete-this-directory.txt
 # =========================
 # Large ML Artifacts
 # =========================
-# models/trained/
-# embeddings/trained/
-# embeddings/vectorizers/
 
-# Ignore model files
-# *.model
-# *.pkl
-# *.pickle
-# *.joblib
+# Ignore heavy trained embedding models
+embeddings/trained/
 
-# Allow vectorizers, trained models, results and figures specifically
+# Ignore huge trained classifiers
+models/trained/
+
+# Ignore huge binary model formats
+*.model
+*.npy
+*.bin
+
+# Ignore cache model artifacts
+*.pickle
+*.joblib
+
+# =========================
+# KEEP REQUIRED DEPLOYMENT FILES
+# =========================
+
+# Keep vectorizers
 !embeddings/vectorizers/*.pkl
+
+# Keep lightweight trained classifier PKLs if needed
 !models/trained/*.pkl
+
+# Keep evaluation results
 !outputs/results/*.csv
+
+# Keep figures/images
 !outputs/figures/**/*.png
 
 # =========================
 # Outputs
 # =========================
-# outputs/
 logs/
 
 # =========================
 # Raw Data
 # =========================
+
+# Optional: ignore huge raw datasets
 # data/raw/*
+
+# Keep gitkeep
 !data/raw/.gitkeep
 
 # =========================
