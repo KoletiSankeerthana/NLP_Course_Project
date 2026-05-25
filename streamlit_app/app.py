@@ -23,6 +23,8 @@ sys.path.append(os.getcwd())
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODELS_DIR = PROJECT_ROOT / "models" / "trained"
 VECTORIZERS_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
+RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "case_files_total.csv"
+PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "processed_legal_dataset_sample.csv"
 
 from src.preprocessing.preprocess import TextPreprocessor
 from src.utils.config import (
@@ -500,8 +502,63 @@ def load_embedding_asset(emb):
     # except: return None
     return None
 
+@st.cache_data
+def load_main_dataset_robust():
+    import pandas as pd
+    attempts = []
+    df = None
+    
+    # 1. Try processed first
+    p_exists = PROCESSED_DATA_PATH.exists()
+    attempts.append({
+        "name": "Processed Dataset Sample",
+        "path": str(PROCESSED_DATA_PATH),
+        "exists": p_exists,
+        "loaded": False,
+        "error": None
+    })
+    if p_exists:
+        try:
+            df = pd.read_csv(PROCESSED_DATA_PATH)
+            attempts[-1]["loaded"] = True
+            attempts[-1]["shape"] = df.shape
+        except Exception as e:
+            attempts[-1]["error"] = str(e)
+            
+    # 2. Try raw fallback
+    if df is None or len(df) < 1000:
+        r_exists = RAW_DATA_PATH.exists()
+        attempts.append({
+            "name": "Raw Dataset (Fallback)",
+            "path": str(RAW_DATA_PATH),
+            "exists": r_exists,
+            "loaded": False,
+            "error": None
+        })
+        if r_exists:
+            try:
+                df = pd.read_csv(RAW_DATA_PATH)
+                attempts[-1]["loaded"] = True
+                attempts[-1]["shape"] = df.shape
+            except Exception as e:
+                attempts[-1]["error"] = str(e)
+                
+    if df is not None:
+        # APPLY RESEARCH FILTERING (The 53,446 logic)
+        if 'label' in df.columns:
+            df = df[df['label'].isin(['Accepted', 'Rejected'])]
+        
+        # Drop rows missing critical text
+        text_cols = ['processed_text', 'judgement', 'case_info']
+        for col in text_cols:
+            if col in df.columns:
+                df = df.dropna(subset=[col])
+                break
+                
+    return df, attempts
+
 preprocessor, results_df, _ = load_resources()
-dataset_df = load_main_dataset()
+dataset_df, dataset_attempts = load_main_dataset_robust()
 
 # --- SINGLE SOURCE OF TRUTH: dataset size ---
 # All pages must reference this constant — never hardcode a number.
@@ -825,7 +882,36 @@ elif page == "📁 Dataset Explorer":
                 )
                 st.plotly_chart(fig, use_container_width=True)
     else:
-        st.error("Dataset failed to load.")
+        st.error("Dataset failed to load. Please inspect the details below:")
+        for attempt in dataset_attempts:
+            if not attempt["loaded"]:
+                st.warning(
+                    f"**{attempt['name']}** at `{attempt['path']}` failed to load.\n"
+                    f"- File exists: `{attempt['exists']}`\n"
+                    f"- Error details: `{attempt['error']}`"
+                )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("🔍 Dataset Diagnostics"):
+        st.write(f"**Detected Project Root:** `{PROJECT_ROOT}`")
+        st.write(f"**Detected Raw Dataset Path:** `{RAW_DATA_PATH}` (Exists: `{RAW_DATA_PATH.exists()}`)")
+        st.write(f"**Detected Processed Dataset Path:** `{PROCESSED_DATA_PATH}` (Exists: `{PROCESSED_DATA_PATH.exists()}`)")
+        
+        if dataset_df is not None:
+            st.write(f"**Dataset Load Status:** Loaded Successfully")
+            st.write(f"**Dataset Shape:** `{dataset_df.shape}`")
+            st.write(f"**Available Columns:** `{list(dataset_df.columns)}`")
+        else:
+            st.write(f"**Dataset Load Status:** Failed to Load")
+            
+        st.write("**Load Fallback Attempts History:**")
+        for i, attempt in enumerate(dataset_attempts, 1):
+            st.write(f"{i}. **{attempt['name']}**")
+            st.write(f"   - Path: `{attempt['path']}`")
+            st.write(f"   - Exists: `{attempt['exists']}`")
+            st.write(f"   - Loaded: `{attempt['loaded']}`")
+            if attempt['error']:
+                st.write(f"   - Error: `{attempt['error']}`")
 
 elif page == "⚙️ NLP Pipeline":
     st.markdown("<div class='section-header'>Linguistic Normalization Pipeline</div>", unsafe_allow_html=True)
