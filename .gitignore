@@ -28,38 +28,51 @@ pip-delete-this-directory.txt
 .streamlit/secrets.toml
 
 # =========================
-# Large ML Artifacts
+# LARGE EMBEDDING FILES
 # =========================
 
-# Ignore heavy trained embedding models
+# Ignore ONLY huge embedding training files
 embeddings/trained/
 
-# Ignore huge trained classifiers
-models/trained/
-
-# Ignore huge binary model formats
-*.model
+# Ignore huge binary formats
 *.npy
 *.bin
 
-# Ignore cache model artifacts
-*.pickle
-*.joblib
+# Ignore heavy gensim models
+*.model
 
 # =========================
-# KEEP REQUIRED DEPLOYMENT FILES
+# KEEP TRAINED PKL CLASSIFIERS
 # =========================
 
-# Keep vectorizers
-!embeddings/vectorizers/*.pkl
+# IMPORTANT:
+# Do NOT ignore models/trained completely
+# because prediction needs classifier PKLs
 
-# Keep lightweight trained classifier PKLs if needed
+# Ignore only heavy files inside trained models
+models/trained/*.model
+models/trained/*.npy
+models/trained/*.bin
+
+# Keep classifier PKLs
 !models/trained/*.pkl
 
-# Keep evaluation results
+# =========================
+# KEEP VECTORIZERS
+# =========================
+
+!embeddings/vectorizers/*.pkl
+
+# =========================
+# KEEP RESULTS
+# =========================
+
 !outputs/results/*.csv
 
-# Keep figures/images
+# =========================
+# KEEP FIGURES
+# =========================
+
 !outputs/figures/**/*.png
 
 # =========================
@@ -71,10 +84,9 @@ logs/
 # Raw Data
 # =========================
 
-# Optional: ignore huge raw datasets
+# Optional
 # data/raw/*
 
-# Keep gitkeep
 !data/raw/.gitkeep
 
 # =========================
