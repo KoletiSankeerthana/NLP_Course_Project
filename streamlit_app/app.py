@@ -30,18 +30,12 @@ from src.utils.helpers import initialize_nltk
 from src.utils.data_loader import load_main_dataset
 
 # ============================================
-# ROBUST PATH RESOLUTION
+# PROJECT PATH RESOLUTION
 # ============================================
 from pathlib import Path
 
-# Find project root by searching upwards for the first parent containing the 'embeddings' or 'models' folder.
-# This prevents relative path resolution issues on Streamlit Cloud and other host environments.
-current_file = Path(__file__).resolve()
-PROJECT_ROOT = current_file.parent
-for parent in [current_file] + list(current_file.parents):
-    if (parent / "embeddings").exists() or (parent / "models").exists() or (parent / "src").exists():
-        PROJECT_ROOT = parent
-        break
+# One global root definition
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 # Directories
 MODELS_DIR = PROJECT_ROOT / "models" / "trained"
@@ -1459,10 +1453,10 @@ elif page == "🤖 Prediction":
 
     st.markdown("<br>", unsafe_allow_html=True)
     with st.expander("Vectorizer Diagnostics"):
-        st.write("Project Root:", PROJECT_ROOT)
-        st.write("Vectorizer Directory:", VECTORIZER_DIR)
-        st.write("TF-IDF Path:", TFIDF_PATH)
-        st.write("TF-IDF Exists:", TFIDF_PATH.exists())
+        st.write("PROJECT_ROOT:", PROJECT_ROOT)
+        st.write("VECTORIZER_DIR:", VECTORIZER_DIR)
+        st.write("TFIDF_PATH:", TFIDF_PATH)
+        st.write("TFIDF EXISTS:", TFIDF_PATH.exists())
         st.write("BoW Path:", BOW_PATH)
         st.write("BoW Exists:", BOW_PATH.exists())
         st.write("One-Hot Path:", ONEHOT_PATH)
