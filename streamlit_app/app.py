@@ -42,7 +42,10 @@ from pathlib import Path
 # app.py is inside streamlit_app/
 # so parent.parent points to NLP_Course_Project/
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+print("APP FILE:", __file__)
+print("PROJECT_ROOT:", PROJECT_ROOT)
+print("VECTORIZER PATH:", PROJECT_ROOT / "embeddings" / "vectorizers" / "tfidf_vectorizer.pkl")
 
 # ================================
 # Model & Vectorizer Directories
