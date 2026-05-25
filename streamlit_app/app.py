@@ -32,17 +32,21 @@ from src.utils.data_loader import load_main_dataset
 # ============================================
 # PROJECT PATH RESOLUTION
 # ============================================
+
 from pathlib import Path
 
-# One global root definition
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-
-
-# Directories
 MODELS_DIR = PROJECT_ROOT / "models" / "trained"
+
 VECTORIZER_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
-VECTORIZERS_DIR = VECTORIZER_DIR # backward compatibility
+
+VECTORIZERS_DIR = VECTORIZER_DIR
+
+
+
+
+
 
 # Vectorizer Files
 TFIDF_PATH = VECTORIZER_DIR / "tfidf_vectorizer.pkl"
