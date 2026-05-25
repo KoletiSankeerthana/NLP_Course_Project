@@ -1,12 +1,28 @@
 # =========================================================
-# PATH CONFIGURATION
+# IMPORTS
 # =========================================================
 
+import os
+import sys
 from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 
+# =========================================================
+# PROJECT ROOT CONFIGURATION
+# =========================================================
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# Add root to Python path
+sys.path.append(str(PROJECT_ROOT))
+
+# =========================================================
+# CUSTOM IMPORTS
+# =========================================================
+
+from src.preprocessing.preprocess import TextPreprocessor
 
 # =========================================================
 # DATASET PATHS
@@ -81,8 +97,8 @@ def load_resources():
 
     preprocessor = TextPreprocessor()
 
-    res_df = None
-    ds_df = None
+    results_df = None
+    dataset_df = None
 
     # =====================================================
     # LOAD RESULTS CSV
@@ -92,11 +108,11 @@ def load_resources():
 
         if RESULTS_PATH.exists():
 
-            res_df = pd.read_csv(RESULTS_PATH)
+            results_df = pd.read_csv(RESULTS_PATH)
 
             st.success("✅ Results CSV Loaded Successfully")
 
-            # Standardize column names
+            # Standardize columns
             col_map = {
                 'embedding': 'Embedding',
                 'classifier': 'Model',
@@ -107,15 +123,15 @@ def load_resources():
                 'training_time': 'Training Time (s)'
             }
 
-            res_df = res_df.rename(
+            results_df = results_df.rename(
                 columns={
                     k: v
                     for k, v in col_map.items()
-                    if k in res_df.columns
+                    if k in results_df.columns
                 }
             )
 
-            st.write("Results Shape:", res_df.shape)
+            st.write("Results Shape:", results_df.shape)
 
         else:
 
@@ -137,26 +153,24 @@ def load_resources():
 
         if PROCESSED_DATA_PATH.exists():
 
-            ds_df = pd.read_csv(PROCESSED_DATA_PATH)
+            dataset_df = pd.read_csv(PROCESSED_DATA_PATH)
 
             st.success("✅ Processed Dataset Loaded Successfully")
 
         elif RAW_DATA_PATH.exists():
 
-            ds_df = pd.read_csv(RAW_DATA_PATH)
+            dataset_df = pd.read_csv(RAW_DATA_PATH)
 
             st.success("✅ Raw Dataset Loaded Successfully")
 
         else:
 
-            st.error(
-                "❌ No dataset files found."
-            )
+            st.error("❌ No dataset files found.")
 
-        if ds_df is not None:
+        if dataset_df is not None:
 
-            st.write("Dataset Shape:", ds_df.shape)
-            st.write("Dataset Columns:", list(ds_df.columns))
+            st.write("Dataset Shape:", dataset_df.shape)
+            st.write("Dataset Columns:", list(dataset_df.columns))
 
     except Exception as e:
 
@@ -164,7 +178,7 @@ def load_resources():
             f"❌ Dataset loading failed:\n{str(e)}"
         )
 
-    return preprocessor, res_df, ds_df
+    return preprocessor, results_df, dataset_df
 
 # =========================================================
 # LOAD EVERYTHING
@@ -173,7 +187,7 @@ def load_resources():
 preprocessor, results_df, dataset_df = load_resources()
 
 # =========================================================
-# TOTAL CASES FIX
+# TOTAL CASES
 # =========================================================
 
 TOTAL_CASES = (
@@ -181,6 +195,10 @@ TOTAL_CASES = (
     if dataset_df is not None
     else 0
 )
+
+# =========================================================
+# METRICS
+# =========================================================
 
 c1, c2, c3 = st.columns(3)
 
