@@ -959,28 +959,6 @@ elif page == "📁 Dataset Explorer":
         )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("Dataset Diagnostics"):
-        st.write("Project Root:", PROJECT_ROOT)
-        st.write("Processed Dataset:", PROCESSED_DATA_PATH)
-        st.write("Processed Exists:", PROCESSED_DATA_PATH.exists())
-        st.write("Raw Dataset:", RAW_DATA_PATH)
-        st.write("Raw Exists:", RAW_DATA_PATH.exists())
-        
-        if dataset_df is not None:
-            st.write(f"**Dataset Load Status:** Loaded Successfully")
-            st.write(f"**Dataset Shape:** `{dataset_df.shape}`")
-            st.write(f"**Available Columns:** `{list(dataset_df.columns)}`")
-        else:
-            st.write(f"**Dataset Load Status:** Failed to Load")
-            
-        st.write("**Load Fallback Attempts History:**")
-        for i, attempt in enumerate(dataset_attempts, 1):
-            st.write(f"{i}. **{attempt['name']}**")
-            st.write(f"   - Path: `{attempt['path']}`")
-            st.write(f"   - Exists: `{attempt['exists']}`")
-            st.write(f"   - Loaded: `{attempt['loaded']}`")
-            if attempt['error']:
-                st.write(f"   - Error: `{attempt['error']}`")
 
 elif page == "⚙️ NLP Pipeline":
     st.markdown("<div class='section-header'>Linguistic Normalization Pipeline</div>", unsafe_allow_html=True)
