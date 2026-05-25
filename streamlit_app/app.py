@@ -471,7 +471,24 @@ def load_resources():
 @st.cache_resource
 def load_model_asset(emb, clf):
     try:
-        filename = f"{emb}_{clf}.pkl"
+        # Normalise embedding name so it exactly matches the filename on disk.
+        # Disk convention: TF-IDF, One-Hot, BoW, W2V_CBOW, W2V_SG, FastText, Doc2Vec_DM, Doc2Vec_DBOW
+        _EMB_FILENAME_MAP = {
+            "TF-IDF":       "TF-IDF",
+            "TF_IDF":       "TF-IDF",
+            "TFIDF":        "TF-IDF",
+            "One-Hot":      "One-Hot",
+            "One_Hot":      "One-Hot",
+            "OneHot":       "One-Hot",
+            "BoW":          "BoW",
+            "W2V_CBOW":     "W2V_CBOW",
+            "W2V_SG":       "W2V_SG",
+            "FastText":     "FastText",
+            "Doc2Vec_DM":   "Doc2Vec_DM",
+            "Doc2Vec_DBOW": "Doc2Vec_DBOW",
+        }
+        emb_norm = _EMB_FILENAME_MAP.get(emb, emb)
+        filename = f"{emb_norm}_{clf}.pkl"
         path = MODELS_DIR / filename
         if not path.exists():
             st.error(f"Missing classifier: {filename}")
