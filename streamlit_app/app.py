@@ -22,7 +22,7 @@ sys.path.append(os.getcwd())
 from src.preprocessing.preprocess import TextPreprocessor
 from src.utils.config import (
     EMBEDDING_MODELS_PATH, VECTORIZERS_PATH, 
-    TRAINED_MODELS_PATH, FIGURES_PATH, RESULTS_PATH,
+    TRAINED_MODELS_PATH, FIGURES_PATH,
     FIGURES_CM_PATH, FIGURES_EMB_PATH, FIGURES_COMP_PATH,
     PROCESSED_CSV
 )
@@ -41,6 +41,7 @@ ONEHOT_PATH = VECTORIZER_DIR / "onehot_vectorizer.pkl"
 
 PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "processed_legal_dataset_sample.csv"
 RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "case_files_total.csv"
+RESULTS_PATH = PROJECT_ROOT / "outputs" / "results" / "model_comparison_results.csv"
 
 # --- NLTK INITIALIZATION ---
 try:
@@ -442,11 +443,8 @@ def load_resources():
     preprocessor = TextPreprocessor()
     res_df, ds_df = None, None
     try:
-        res_path = os.path.join(RESULTS_PATH, "model_comparison.csv")
-        if not os.path.exists(res_path):
-            res_path = os.path.join(RESULTS_PATH, "model_comparison_results.csv")
-        if os.path.exists(res_path):
-            res_df = pd.read_csv(res_path)
+        if RESULTS_PATH.exists():
+            res_df = pd.read_csv(RESULTS_PATH)
             # Standardize columns for app backward-compatibility
             col_map = {
                 'embedding': 'Embedding',
@@ -458,7 +456,10 @@ def load_resources():
                 'training_time': 'Training Time (s)'
             }
             res_df = res_df.rename(columns={k: v for k, v in col_map.items() if k in res_df.columns})
-    except: pass
+        else:
+            st.error(f"Results file missing: {RESULTS_PATH}")
+    except Exception as e:
+        st.error(f"Error loading results: {str(e)}")
     
     try:
         ds_path = os.path.join(PROCESSED_DATA_PATH, PROCESSED_CSV)
@@ -1593,7 +1594,14 @@ elif page == "📊 Performance Dashboard":
                 </div>
             """, unsafe_allow_html=True)
             
-    else: st.error("Results data missing. Please run the evaluation pipeline.")
+    else:
+        st.error("Results data missing. Please run the evaluation pipeline.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("Results Diagnostics"):
+        st.write("Project Root:", PROJECT_ROOT)
+        st.write("Results Path:", RESULTS_PATH)
+        st.write("Exists:", RESULTS_PATH.exists())
 
 elif page == "🖼 Gallery":
     st.markdown("<div class='section-header'>Visual Analytics</div>", unsafe_allow_html=True)
