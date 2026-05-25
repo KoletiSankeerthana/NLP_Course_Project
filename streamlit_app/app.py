@@ -19,22 +19,22 @@ from pathlib import Path
 # Ensure project root is in path
 sys.path.append(os.getcwd())
 
-# Robust Path Resolution
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-MODELS_DIR = PROJECT_ROOT / "models" / "trained"
-VECTORIZERS_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
-RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "case_files_total.csv"
-PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "processed_legal_dataset_sample.csv"
-
 from src.preprocessing.preprocess import TextPreprocessor
 from src.utils.config import (
     EMBEDDING_MODELS_PATH, VECTORIZERS_PATH, 
     TRAINED_MODELS_PATH, FIGURES_PATH, RESULTS_PATH,
     FIGURES_CM_PATH, FIGURES_EMB_PATH, FIGURES_COMP_PATH,
-    PROCESSED_DATA_PATH, PROCESSED_CSV
+    PROCESSED_CSV
 )
 from src.utils.helpers import initialize_nltk
 from src.utils.data_loader import load_main_dataset
+
+# Robust Path Resolution
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+MODELS_DIR = PROJECT_ROOT / "models" / "trained"
+VECTORIZERS_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
+PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "processed_legal_dataset_sample.csv"
+RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "case_files_total.csv"
 
 # --- NLTK INITIALIZATION ---
 try:
@@ -882,20 +882,20 @@ elif page == "📁 Dataset Explorer":
                 )
                 st.plotly_chart(fig, use_container_width=True)
     else:
-        st.error("Dataset failed to load. Please inspect the details below:")
-        for attempt in dataset_attempts:
-            if not attempt["loaded"]:
-                st.warning(
-                    f"**{attempt['name']}** at `{attempt['path']}` failed to load.\n"
-                    f"- File exists: `{attempt['exists']}`\n"
-                    f"- Error details: `{attempt['error']}`"
-                )
+        st.error(
+            f"Dataset failed to load. The application requires at least one of the following dataset files to run:\n\n"
+            f"1. **Processed Dataset**: `{PROCESSED_DATA_PATH}` (File exists: {PROCESSED_DATA_PATH.exists()})\n"
+            f"2. **Raw Dataset**: `{RAW_DATA_PATH}` (File exists: {RAW_DATA_PATH.exists()})\n\n"
+            f"Please verify that these dataset files are present in the repository and deployed correctly."
+        )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("🔍 Dataset Diagnostics"):
-        st.write(f"**Detected Project Root:** `{PROJECT_ROOT}`")
-        st.write(f"**Detected Raw Dataset Path:** `{RAW_DATA_PATH}` (Exists: `{RAW_DATA_PATH.exists()}`)")
-        st.write(f"**Detected Processed Dataset Path:** `{PROCESSED_DATA_PATH}` (Exists: `{PROCESSED_DATA_PATH.exists()}`)")
+    with st.expander("Dataset Diagnostics"):
+        st.write("Project Root:", PROJECT_ROOT)
+        st.write("Processed Dataset:", PROCESSED_DATA_PATH)
+        st.write("Processed Exists:", PROCESSED_DATA_PATH.exists())
+        st.write("Raw Dataset:", RAW_DATA_PATH)
+        st.write("Raw Exists:", RAW_DATA_PATH.exists())
         
         if dataset_df is not None:
             st.write(f"**Dataset Load Status:** Loaded Successfully")
