@@ -1436,26 +1436,6 @@ elif page == "🤖 Prediction":
                             st.error("Failed to load required assets. Cannot run multi-segment classification.")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    with st.expander("Vectorizer Diagnostics"):
-        st.write("PROJECT_ROOT:", PROJECT_ROOT)
-        st.write("VECTORIZER_DIR:", VECTORIZER_DIR)
-        st.write("TFIDF_PATH:", TFIDF_PATH)
-        st.write("TFIDF EXISTS:", TFIDF_PATH.exists())
-        st.write("BoW Path:", BOW_PATH)
-        st.write("BoW Exists:", BOW_PATH.exists())
-        st.write("One-Hot Path:", ONEHOT_PATH)
-        st.write("One-Hot Exists:", ONEHOT_PATH.exists())
-        
-        # Check available files in directory if exists
-        if VECTORIZER_DIR.exists():
-            try:
-                available_files = os.listdir(VECTORIZER_DIR)
-                st.write("Available Files in Directory:", available_files)
-            except Exception as e:
-                st.write("Error reading directory:", str(e))
-        else:
-            st.write("Vectorizer directory does not exist.")
-
 
 
 elif page == "📊 Performance Dashboard":
