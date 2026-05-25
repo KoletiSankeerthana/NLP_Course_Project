@@ -36,8 +36,8 @@ from pathlib import Path
 
 # One global root definition
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if PROJECT_ROOT.name == "streamlit_app":
-    PROJECT_ROOT = PROJECT_ROOT.parent
+
+
 
 # Directories
 MODELS_DIR = PROJECT_ROOT / "models" / "trained"
