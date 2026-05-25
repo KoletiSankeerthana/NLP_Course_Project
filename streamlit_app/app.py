@@ -35,8 +35,132 @@ from src.utils.data_loader import load_main_dataset
 
 from pathlib import Path
 
-# Correct project root
-PROJECT_ROOT = Path(__file__).resolve().parent
+# ================================
+# Correct Project Root
+# ================================
+
+# app.py is inside streamlit_app/
+# so parent.parent points to NLP_Course_Project/
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# ================================
+# Model & Vectorizer Directories
+# ================================
+
+MODELS_DIR = PROJECT_ROOT / "models" / "trained"
+
+VECTORIZER_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
+
+# Backward compatibility
+VECTORIZERS_DIR = VECTORIZER_DIR
+
+# ================================
+# Vectorizer Files
+# ================================
+
+TFIDF_PATH = VECTORIZER_DIR / "tfidf_vectorizer.pkl"
+
+BOW_PATH = VECTORIZER_DIR / "bow_vectorizer.pkl"
+
+ONEHOT_PATH = VECTORIZER_DIR / "onehot_vectorizer.pkl"
+
+# ================================
+# Dataset Paths
+# ================================
+
+PROCESSED_DATA_PATH = (
+    PROJECT_ROOT
+    / "data"
+    / "processed"
+    / "processed_legal_dataset_sample.csv"
+)
+
+RAW_DATA_PATH = (
+    PROJECT_ROOT
+    / "data"
+    / "raw"
+    / "case_files_total.csv"
+)
+
+# ================================
+# Debug Prints
+# ================================
+
+print("PROJECT_ROOT:", PROJECT_ROOT)
+
+print("MODELS_DIR:", MODELS_DIR)
+
+print("VECTORIZER_DIR:", VECTORIZER_DIR)
+
+print("TFIDF MODEL EXISTS:",
+      (MODELS_DIR / "TF-IDF_logistic_regression.pkl").exists())
+
+print("TFIDF VECTORIZER EXISTS:",
+      TFIDF_PATH.exists())
+# ================================
+# Correct Project Root
+# ================================
+
+# app.py is inside streamlit_app/
+# so parent.parent points to NLP_Course_Project/
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# ================================
+# Model & Vectorizer Directories
+# ================================
+
+MODELS_DIR = PROJECT_ROOT / "models" / "trained"
+
+VECTORIZER_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
+
+# Backward compatibility
+VECTORIZERS_DIR = VECTORIZER_DIR
+
+# ================================
+# Vectorizer Files
+# ================================
+
+TFIDF_PATH = VECTORIZER_DIR / "tfidf_vectorizer.pkl"
+
+BOW_PATH = VECTORIZER_DIR / "bow_vectorizer.pkl"
+
+ONEHOT_PATH = VECTORIZER_DIR / "onehot_vectorizer.pkl"
+
+# ================================
+# Dataset Paths
+# ================================
+
+PROCESSED_DATA_PATH = (
+    PROJECT_ROOT
+    / "data"
+    / "processed"
+    / "processed_legal_dataset_sample.csv"
+)
+
+RAW_DATA_PATH = (
+    PROJECT_ROOT
+    / "data"
+    / "raw"
+    / "case_files_total.csv"
+)
+
+# ================================
+# Debug Prints
+# ================================
+
+print("PROJECT_ROOT:", PROJECT_ROOT)
+
+print("MODELS_DIR:", MODELS_DIR)
+
+print("VECTORIZER_DIR:", VECTORIZER_DIR)
+
+print("TFIDF MODEL EXISTS:",
+      (MODELS_DIR / "TF-IDF_logistic_regression.pkl").exists())
+
+print("TFIDF VECTORIZER EXISTS:",
+      TFIDF_PATH.exists())
 
 # ================================
 # Model & Vectorizer Directories
