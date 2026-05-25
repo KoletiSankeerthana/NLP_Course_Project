@@ -41,11 +41,7 @@ from pathlib import Path
 
 # app.py is inside streamlit_app/
 # so parent.parent points to NLP_Course_Project/
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-print("APP FILE:", __file__)
-print("PROJECT_ROOT:", PROJECT_ROOT)
-print("VECTORIZER PATH:", PROJECT_ROOT / "embeddings" / "vectorizers" / "tfidf_vectorizer.pkl")
 
 # ================================
 # Model & Vectorizer Directories
@@ -108,7 +104,43 @@ print("TFIDF VECTORIZER EXISTS:",
 # app.py is inside streamlit_app/
 # so parent.parent points to NLP_Course_Project/
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# ============================================
+# ABSOLUTE PROJECT ROOT FIX
+# ============================================
+
+from pathlib import Path
+
+# This gets:
+# /mount/src/nlp_course_project
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+# ============================================
+# DIRECTORIES
+# ============================================
+
+MODELS_DIR = PROJECT_ROOT / "models" / "trained"
+
+VECTORIZERS_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
+
+# ============================================
+# VECTORIZER FILES
+# ============================================
+
+TFIDF_PATH = VECTORIZERS_DIR / "tfidf_vectorizer.pkl"
+
+BOW_PATH = VECTORIZERS_DIR / "bow_vectorizer.pkl"
+
+ONEHOT_PATH = VECTORIZERS_DIR / "onehot_vectorizer.pkl"
+
+# ============================================
+# DEBUG
+# ============================================
+
+print("PROJECT_ROOT =", PROJECT_ROOT)
+
+print("TFIDF_PATH =", TFIDF_PATH)
+
+print("TFIDF EXISTS =", TFIDF_PATH.exists())
 
 # ================================
 # Model & Vectorizer Directories
