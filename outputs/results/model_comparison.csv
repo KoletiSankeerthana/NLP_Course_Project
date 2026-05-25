@@ -1,0 +1,17 @@
+embedding,classifier,accuracy,precision,recall,f1_score,training_time
+Label Encoding,Logistic Regression,0.655,0.648,0.655,0.621,0.012
+Label Encoding,Random Forest,0.712,0.718,0.712,0.694,0.442
+One-Hot,Logistic Regression,0.92,0.919,0.92,0.918,0.03
+One-Hot,Random Forest,0.925,0.927,0.925,0.922,0.472
+BoW,Logistic Regression,0.855,0.851,0.855,0.851,0.127
+BoW,Random Forest,0.915,0.918,0.915,0.911,0.674
+TF-IDF,Logistic Regression,0.865,0.874,0.865,0.851,0.027
+TF-IDF,Random Forest,0.925,0.925,0.925,0.923,0.839
+Word2Vec CBOW,Logistic Regression,0.92,0.921,0.92,0.917,0.021
+Word2Vec CBOW,Random Forest,0.92,0.919,0.92,0.918,0.605
+Word2Vec SkipGram,Logistic Regression,0.925,0.929,0.925,0.921,0.018
+Word2Vec SkipGram,Random Forest,0.92,0.925,0.92,0.916,0.629
+FastText,Logistic Regression,0.905,0.906,0.905,0.9,0.018
+FastText,Random Forest,0.91,0.911,0.91,0.906,0.614
+Doc2Vec,Logistic Regression,0.85,0.846,0.85,0.84,0.023
+Doc2Vec,Random Forest,0.88,0.891,0.88,0.868,0.513

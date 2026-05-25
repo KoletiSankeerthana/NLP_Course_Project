@@ -30,20 +30,26 @@ pip-delete-this-directory.txt
 # =========================
 # Large ML Artifacts
 # =========================
-models/trained/
-embeddings/trained/
-embeddings/vectorizers/
+# models/trained/
+# embeddings/trained/
+# embeddings/vectorizers/
 
 # Ignore model files
-*.model
-*.pkl
-*.pickle
-*.joblib
+# *.model
+# *.pkl
+# *.pickle
+# *.joblib
+
+# Allow vectorizers, trained models, results and figures specifically
+!embeddings/vectorizers/*.pkl
+!models/trained/*.pkl
+!outputs/results/*.csv
+!outputs/figures/**/*.png
 
 # =========================
 # Outputs
 # =========================
-outputs/
+# outputs/
 logs/
 
 # =========================

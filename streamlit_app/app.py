@@ -32,7 +32,13 @@ from src.utils.data_loader import load_main_dataset
 # Robust Path Resolution
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODELS_DIR = PROJECT_ROOT / "models" / "trained"
-VECTORIZERS_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
+VECTORIZER_DIR = PROJECT_ROOT / "embeddings" / "vectorizers"
+VECTORIZERS_DIR = VECTORIZER_DIR # for backward compatibility
+
+TFIDF_PATH = VECTORIZER_DIR / "tfidf_vectorizer.pkl"
+BOW_PATH = VECTORIZER_DIR / "bow_vectorizer.pkl"
+ONEHOT_PATH = VECTORIZER_DIR / "onehot_vectorizer.pkl"
+
 PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "processed_legal_dataset_sample.csv"
 RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "case_files_total.csv"
 
@@ -478,15 +484,15 @@ def load_model_asset(emb, clf):
 @st.cache_resource
 def load_vectorizer_asset(emb):
     try:
-        vec_map = {"One-Hot": "onehot_vectorizer.pkl", "BoW": "bow_vectorizer.pkl", "TF-IDF": "tfidf_vectorizer.pkl"}
+        vec_map = {"One-Hot": ONEHOT_PATH, "BoW": BOW_PATH, "TF-IDF": TFIDF_PATH}
         if emb not in vec_map:
             return None
-        filename = vec_map[emb]
-        path = VECTORIZERS_DIR / filename
-        if not path.exists():
-            st.error(f"Missing vectorizer: {filename}")
+        path = vec_map[emb]
+        if path.exists():
+            return joblib.load(path)
+        else:
+            st.error(f"Missing vectorizer: {path}")
             return None
-        return joblib.load(path)
     except Exception as e:
         st.error(f"Failed to load vectorizer: {str(e)}")
         return None
@@ -573,6 +579,9 @@ def evaluate_model(txt, emb, clf):
         proc = preprocessor.full_preprocess(txt)
         if emb in ["TF-IDF", "BoW", "One-Hot"]:
             vec = load_vectorizer_asset(emb)
+            if vec is None:
+                st.error(f"Failed to load vectorizer for {emb}. Inference stopped.")
+                return None, None, None
             feats = vec.transform([proc])
         else:
             st.warning("Precomputed dense embedding results are displayed in this deployment version.")
@@ -1277,7 +1286,11 @@ elif page == "🤖 Prediction":
                     proc = preprocessor.full_preprocess(txt_single)
                     if emb_single in ["TF-IDF", "BoW", "One-Hot"]:
                         vec = load_vectorizer_asset(emb_single)
-                        feats = vec.transform([proc])
+                        if vec is None:
+                            st.error(f"Failed to load vectorizer for {emb_single}. Cannot run classification.")
+                            feats = None
+                        else:
+                            feats = vec.transform([proc])
                     else:
                         st.warning("Precomputed dense embedding results are displayed in this deployment version.")
                         feats = None
@@ -1381,6 +1394,29 @@ elif page == "🤖 Prediction":
                             if multi_results:
                                 st.success("✅ Multi-Segment Classification Complete")
                                 st.dataframe(pd.DataFrame(multi_results), use_container_width=True)
+                        else:
+                            st.error("Failed to load required assets. Cannot run multi-segment classification.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("Vectorizer Diagnostics"):
+        st.write("Project Root:", PROJECT_ROOT)
+        st.write("Vectorizer Directory:", VECTORIZER_DIR)
+        st.write("TF-IDF Path:", TFIDF_PATH)
+        st.write("TF-IDF Exists:", TFIDF_PATH.exists())
+        st.write("BoW Path:", BOW_PATH)
+        st.write("BoW Exists:", BOW_PATH.exists())
+        st.write("One-Hot Path:", ONEHOT_PATH)
+        st.write("One-Hot Exists:", ONEHOT_PATH.exists())
+        
+        # Check available files in directory if exists
+        if VECTORIZER_DIR.exists():
+            try:
+                available_files = os.listdir(VECTORIZER_DIR)
+                st.write("Available Files in Directory:", available_files)
+            except Exception as e:
+                st.write("Error reading directory:", str(e))
+        else:
+            st.write("Vectorizer directory does not exist.")
 
 
 
